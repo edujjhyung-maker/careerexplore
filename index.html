@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>역량 기반 진로 탐색 시스템</title>
+  <meta name="description" content="교육과정 핵심 역량 검사로 맞춤 직업 추천 및 꿈길 진로체험 센터를 지도로 안내합니다." />
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- App CSS -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+      <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+    </svg>
+  </div>
+  <h1>역량 기반 진로 탐색</h1>
+  <span>KNOW 570개 직업 · 꿈길 45개 센터</span>
+</header>
+
+<main class="container">
+
+  <!-- ── Step 0: 소개 ────────────────────────────────── -->
+  <section class="step active" id="step0">
+    <div class="tag">📚 진로탐색 시스템</div>
+    <h1>역량 기반 진로 탐색</h1>
+    <p class="subtitle">
+      KNOW 한국직업정보 570개 직업 재직자 데이터를 기반으로<br>
+      나의 교육과정 핵심 역량에 맞는 직업을 추천하고,<br>
+      <strong>꿈길 진로체험 센터 지도</strong>로 가까운 체험 기관을 안내합니다.
+    </p>
+    <div class="card accent">
+      <h3>📋 역량 검사 (30문항)</h3>
+      <p>리더십·분석적 사고·성취/노력·책임성과 진취성·혁신·신뢰성 6가지 핵심 역량을 각 5문항, 1~5점으로 측정합니다.</p>
+    </div>
+    <div class="card">
+      <h3>🎯 직업 추천 + 희망 직업 GAP 분석</h3>
+      <p>KNOW 데이터 기반 직업 추천과 희망 직업 역량을 레이더 차트로 시각화합니다.</p>
+    </div>
+    <div class="card">
+      <h3>🗺️ 꿈길 센터 지도</h3>
+      <p>부족한 역량과 연관된 꿈길 진로체험지원센터를 지도에서 찾고, 클릭으로 주소·연락처를 바로 확인합니다.</p>
+    </div>
+    <div class="btn-row" style="justify-content:flex-start;margin-top:1.25rem">
+      <button class="btn primary" onclick="goStep(1)">
+        검사 시작하기
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <p style="font-size:12px;color:var(--text-hint);margin-top:1.5rem">
+      기반 연구: 이송이 외(2024). 교육과정 핵심 역량을 통한 학생 맞춤형 진로 탐색 시스템 개발. 한국컴퓨터교육학회.<br>
+      데이터: 공공데이터포털 KNOW 재직자조사 · 교육부 꿈길 진로체험지원센터 정보
+    </p>
+  </section>
+
+  <!-- ── Step 1: 역량 검사 ───────────────────────────── -->
+  <section class="step" id="step1">
+    <div class="tag">📝 1단계 · 역량 검사</div>
+    <h2>교육과정 핵심 역량 검사</h2>
+    <p class="subtitle">각 문항에 대해 현재 나의 수준을 <strong>1(매우 낮음) ~ 5(매우 높음)</strong>으로 평가해주세요.</p>
+    <div class="prog-bar" id="prog-bar">
+      <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="error-msg" id="error-msg" role="alert">⚠️ 모든 문항에 응답해주세요.</div>
+    <div id="q-container"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="goStep(0)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        이전
+      </button>
+      <button class="btn primary" onclick="submitTest()">
+        다음 단계
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- ── Step 2: 희망 직업 ───────────────────────────── -->
+  <section class="step" id="step2">
+    <div class="tag">🔍 2단계 · 희망 직업</div>
+    <h2>희망 직업을 입력해주세요</h2>
+    <p class="subtitle">
+      희망하는 직업이 있다면 검색해서 선택해주세요.<br>
+      KNOW 데이터 내 570개 직업을 검색할 수 있으며, 없으면 건너뛰어도 됩니다.
+    </p>
+    <div class="search-wrap">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" class="search-input" id="job-search"
+        placeholder="직업명 검색 (예: 교사, 소프트웨어 개발자, 의사...)"
+        autocomplete="off"
+        oninput="onJobSearch()"
+        onkeydown="onJobKey(event)" />
+      <div class="dropdown" id="job-dropdown"></div>
+    </div>
+    <div id="sel-job-wrap"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="goStep(1)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        이전
+      </button>
+      <button class="skip-btn" onclick="selectedJob=null; goStep(3)">건너뛰기</button>
+      <button class="btn primary" onclick="goStep(3)">
+        결과 보기
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- ── Step 3: 결과 ────────────────────────────────── -->
+  <section class="step" id="step3">
+    <div class="tag">📊 결과</div>
+    <h2>역량 분석 결과</h2>
+    <div id="result-hero"></div>
+
+    <!-- 탭 (4개) -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab(0)">🕸️ 레이더 차트</button>
+      <button class="tab-btn" onclick="showTab(1)">📊 GAP 분석</button>
+      <button class="tab-btn" onclick="showTab(2)">🌱 체험 프로그램</button>
+      <button class="tab-btn" onclick="showTab(3)">🗺️ 센터 지도</button>
+    </div>
+
+    <!-- Tab 0: 레이더 차트 -->
+    <div id="tab-radar">
+      <div class="legend-row" id="radar-legend"></div>
+      <div class="chart-wrap">
+        <canvas id="radar-chart" role="img" aria-label="역량 레이더 차트"></canvas>
+      </div>
+    </div>
+
+    <!-- Tab 1: GAP 분석 -->
+    <div id="tab-gap" style="display:none">
+      <div id="gap-list"></div>
+    </div>
+
+    <!-- Tab 2: 체험 프로그램 -->
+    <div id="tab-program" style="display:none">
+      <div class="api-banner" id="api-status">⚠️ 꿈길 API 미연결 — 기본 샘플 프로그램 표시 중</div>
+      <div class="section-title">📍 추천 진로 체험 프로그램</div>
+      <div class="prog-grid" id="prog-grid"></div>
+      <div class="section-title" style="margin-top:.5rem">🔗 더 알아보기</div>
+      <div class="link-row" id="link-row"></div>
+    </div>
+
+    <!-- Tab 3: 프로그램 지도 -->
+    <div id="tab-map" style="display:none">
+      <!-- 역량 필터 -->
+      <div class="map-section-label">역량별 필터 <span style="font-size:11px;color:var(--text-hint)">(GAP 분석 결과가 자동 선택됩니다)</span></div>
+      <div id="comp-filter-wrap" class="comp-filter-row"></div>
+
+      <!-- 지역 + 통계 -->
+      <div class="map-toolbar">
+        <label class="map-label">지역</label>
+        <select id="region-filter" onchange="onRegionChange(this.value)">
+          <option value="전국">전국</option>
+          <option value="서울">서울</option><option value="부산">부산</option>
+          <option value="대구">대구</option><option value="인천">인천</option>
+          <option value="광주">광주</option><option value="대전">대전</option>
+          <option value="울산">울산</option><option value="세종">세종</option>
+          <option value="경기">경기</option><option value="강원">강원</option>
+          <option value="충북">충북</option><option value="충남">충남</option>
+          <option value="전북">전북</option><option value="전남">전남</option>
+          <option value="경북">경북</option><option value="경남">경남</option>
+          <option value="제주">제주</option>
+        </select>
+        <span id="map-stats" class="map-tip"></span>
+      </div>
+
+      <!-- 범례 -->
+      <div class="map-legend">
+        <span class="map-leg-item"><span class="map-leg-dot" style="background:#444"></span>꿈길 센터</span>
+        <span class="map-leg-item"><span class="map-leg-dot" style="background:#1D9E75"></span>리더십</span>
+        <span class="map-leg-item"><span class="map-leg-dot" style="background:#185FA5"></span>분석적 사고</span>
+        <span class="map-leg-item"><span class="map-leg-dot" style="background:#BA7517"></span>성취/노력</span>
+        <span class="map-leg-item"><span class="map-leg-dot" style="background:#D85A30"></span>책임성</span>
+        <span class="map-leg-item"><span class="map-leg-dot" style="background:#534AB7"></span>혁신</span>
+        <span class="map-leg-item"><span class="map-leg-dot" style="background:#888780"></span>신뢰성</span>
+      </div>
+
+      <div id="center-map"></div>
+      <div id="center-list"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" onclick="answers={}; selectedJob=null; goStep(1)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        다시 검사
+      </button>
+      <button class="btn secondary" onclick="window.print()">🖨️ 결과 인쇄</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>
+    데이터:
+    <a href="https://www.data.go.kr/data/15114089/fileData.do" target="_blank" rel="noopener">KNOW 재직자조사</a> ·
+    <a href="https://www.data.go.kr/data/15123665/fileData.do" target="_blank" rel="noopener">꿈길 진로체험지원센터</a> ·
+    <a href="https://www.career.go.kr" target="_blank" rel="noopener">커리어넷</a>
+  </p>
+  <p style="margin-top:4px">이송이 외(2024). 교육과정 핵심 역량을 통한 학생 맞춤형 진로 탐색 시스템 개발. 한국컴퓨터교육학회 하계 학술발표논문집.</p>
+</footer>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="data.js"></script>
+<script src="centers.js"></script>
+<script src="programs.js"></script>
+<script src="map.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
