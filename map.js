@@ -123,7 +123,7 @@ function applyFilter() {
           <div style="font-size:12px;color:#5F5E5A;margin-bottom:3px">🏢 ${prog.org}</div>
           <div style="font-size:12px;color:#5F5E5A;margin-bottom:3px">📂 ${prog.cat}</div>
           <div style="font-size:12px;color:#5F5E5A;margin-bottom:8px">🎓 대상: ${grades} | 📍 ${prog.addr}</div>
-          <a href="https://www.ggoomgil.go.kr/front/progm/actSchoolProgmList.do?searchText=${encodeURIComponent(prog.n)}"
+          <a href="https://www.ggoomgil.go.kr/front/index.do"
              target="_blank" rel="noopener"
              style="display:inline-block;background:#1D9E75;color:white;font-size:11px;
                padding:5px 12px;border-radius:6px;text-decoration:none;font-weight:600">
@@ -199,7 +199,7 @@ function renderProgramList(progs) {
             <div class="cc-addr" style="color:${ci.color};font-weight:500">${ci.label} · ${p.type}</div>
             <div class="cc-tel">${p.org} · ${p.addr}</div>
           </div>
-          <a href="https://www.ggoomgil.go.kr/front/progm/actSchoolProgmList.do?searchText=${encodeURIComponent(p.n)}"
+          <a href="https://www.ggoomgil.go.kr/front/index.do"
              target="_blank" rel="noopener"
              class="cc-link" onclick="event.stopPropagation()">신청</a>
         </div>`;
