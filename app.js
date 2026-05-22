@@ -526,7 +526,7 @@ function renderPrograms(myArr, recJob) {
       : `<span class="prog-tag paid">유료</span>`;
     const grades = [p.el && '초', p.mid && '중', p.hi && '고']
       .filter(Boolean).join('·') || '전체';
-    const url = `https://www.ggoomgil.go.kr/front/progm/actSchoolProgmList.do?searchText=${encodeURIComponent(p.n)}`;
+    const url = `https://www.ggoomgil.go.kr/front/index.do`;
 
     return `<a class="prog-card" href="${url}" target="_blank" rel="noopener">
       <div class="prog-card-top">
@@ -548,7 +548,7 @@ function renderPrograms(myArr, recJob) {
   const kw1 = encodeURIComponent(recJob.n);
   const kw2 = encodeURIComponent(weakLabels.join(' ') || recJob.n);
   $('link-row').innerHTML = `
-    <a class="ext-btn ggoomgil" href="https://www.ggoomgil.go.kr/front/progm/actSchoolProgmList.do?searchText=${kw2}" target="_blank" rel="noopener">
+    <a class="ext-btn ggoomgil" href="https://www.ggoomgil.go.kr/front/index.do" target="_blank" rel="noopener">
       🌱 꿈길 체험 더보기
     </a>
     <a class="ext-btn careernet" href="https://www.career.go.kr/cnet/front/web/job/catJobView.do?SEQ=0&jobGbn=job&keyword=${kw1}" target="_blank" rel="noopener">
