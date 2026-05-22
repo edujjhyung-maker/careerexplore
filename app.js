@@ -457,45 +457,96 @@ function renderGap(myArr, recJob) {
 
 // ── 체험 프로그램 & 링크 ──────────────────────────────────────────────
 function renderPrograms(myArr, recJob) {
+  // ── 1. 약한 역량 추출 (GAP 기준) ──────────────────────────────────
   const compIds = COMPS.map(c => c.id);
-  const weakIds = compIds
-    .filter((id, i) => myArr[i] - recJob.s[i] < -0.3)
-    .sort((a, b) => {
-      const ia = COMPS.findIndex(c => c.id === a);
-      const ib = COMPS.findIndex(c => c.id === b);
-      return (myArr[ia] - recJob.s[ia]) - (myArr[ib] - recJob.s[ib]);
-    })
-    .slice(0, 2);
+  const gapArr = COMPS.map((c, i) => ({
+    id: c.id, label: c.label, color: c.color,
+    gap: myArr[i] - recJob.s[i]
+  }));
+  const weakIds = gapArr
+    .filter(g => g.gap < -0.3)
+    .sort((a, b) => a.gap - b.gap)  // 가장 부족한 순
+    .map(g => g.id);
 
-  const shown = [];
-  weakIds.forEach(k => (PROGRAMS[k] || []).forEach(p => shown.push(p)));
-  if (!shown.length) compIds.forEach(k => (PROGRAMS[k] || []).slice(0, 1).forEach(p => shown.push(p)));
+  // 약한 역량이 없으면 전체 역량 사용
+  const filterIds = weakIds.length > 0 ? weakIds : compIds;
 
-  // 꿈길 API 연동 여부 확인
-  const apiStatus = $('api-status');
-  if (apiStatus) {
-    apiStatus.className = API_CONFIG.ggoomgil
-      ? 'api-banner connected'
-      : 'api-banner';
-    apiStatus.innerHTML = API_CONFIG.ggoomgil
-      ? '✅ 꿈길 API 연결됨 — 실시간 프로그램 데이터를 불러옵니다'
-      : '⚠️ 꿈길 API 미연결 — 기본 샘플 프로그램을 표시합니다. js/app.js의 API_CONFIG에 키를 입력하세요.';
+  // ── 2. programs.js에서 역량 매칭 프로그램 필터링 ──────────────────
+  let matched = PROGRAMS_DATA.filter(p =>
+    p.comp.some(c => filterIds.includes(c))
+  );
+
+  // 약한 역량 순서대로 정렬 (가장 부족한 역량 프로그램 우선)
+  matched.sort((a, b) => {
+    const aScore = Math.min(...a.comp.map(c => {
+      const idx = filterIds.indexOf(c);
+      return idx >= 0 ? idx : 999;
+    }));
+    const bScore = Math.min(...b.comp.map(c => {
+      const idx = filterIds.indexOf(c);
+      return idx >= 0 ? idx : 999;
+    }));
+    return aScore - bScore;
+  });
+
+  // 중복 기관 제거하며 상위 6개 선별
+  const seen = new Set();
+  const top = [];
+  for (const p of matched) {
+    if (!seen.has(p.org) && top.length < 6) {
+      seen.add(p.org);
+      top.push(p);
+    }
+    if (top.length >= 6) break;
+  }
+  // 6개 못 채우면 중복 기관 허용해서 채우기
+  if (top.length < 6) {
+    for (const p of matched) {
+      if (!top.includes(p) && top.length < 6) top.push(p);
+    }
   }
 
+  // ── 3. 추천 배너 ──────────────────────────────────────────────────
+  const weakLabels = weakIds.map(id => COMPS.find(c => c.id === id)?.label).filter(Boolean);
+  const bannerEl = $('api-status');
+  if (bannerEl) {
+    bannerEl.className = 'api-banner connected';
+    bannerEl.innerHTML = weakLabels.length > 0
+      ? `✅ <strong>${weakLabels.join('·')}</strong> 역량 향상에 도움되는 꿈길 프로그램 ${matched.length}개 중 추천 ${top.length}개`
+      : `✅ 꿈길 체험프로그램 ${PROGRAMS_DATA.length}개 중 추천 ${top.length}개`;
+  }
+
+  // ── 4. 프로그램 카드 렌더링 ────────────────────────────────────────
   const pg = $('prog-grid');
-  pg.innerHTML = shown.slice(0, 4).map(p => {
-    const url = `https://www.ggoomgil.go.kr/front/progm/actSchoolProgmList.do?searchText=${encodeURIComponent(p.kw)}`;
+  pg.innerHTML = top.map(p => {
+    const mainComp = p.comp[0] || 'i';
+    const ci = COMPS.find(c => c.id === mainComp) || COMPS[4];
+    const freeTag = p.free
+      ? `<span class="prog-tag free">무료</span>`
+      : `<span class="prog-tag paid">유료</span>`;
+    const grades = [p.el && '초', p.mid && '중', p.hi && '고']
+      .filter(Boolean).join('·') || '전체';
+    const url = `https://www.ggoomgil.go.kr/front/progm/actSchoolProgmList.do?searchText=${encodeURIComponent(p.n)}`;
+
     return `<a class="prog-card" href="${url}" target="_blank" rel="noopener">
-      <div class="prog-type">📍 ${p.type}</div>
-      <div class="prog-name">${p.name}</div>
-      <div class="prog-meta">${p.org} · ${p.dur}</div>
+      <div class="prog-card-top">
+        <span class="prog-comp-dot" style="background:${ci.color}"></span>
+        <span class="prog-comp-label" style="color:${ci.color}">${ci.label}</span>
+        ${freeTag}
+      </div>
+      <div class="prog-type">${p.type}</div>
+      <div class="prog-name">${p.n}</div>
+      <div class="prog-meta">${p.org}</div>
+      <div class="prog-footer">
+        <span>📂 ${p.cat}</span>
+        <span>🎓 ${grades}학교 · 📍${p.addr}</span>
+      </div>
     </a>`;
   }).join('');
 
+  // ── 5. 외부 링크 ──────────────────────────────────────────────────
   const kw1 = encodeURIComponent(recJob.n);
-  const weakLabels = COMPS.filter((_, i) => myArr[i] - recJob.s[i] < -0.3).map(c => c.label);
   const kw2 = encodeURIComponent(weakLabels.join(' ') || recJob.n);
-
   $('link-row').innerHTML = `
     <a class="ext-btn ggoomgil" href="https://www.ggoomgil.go.kr/front/progm/actSchoolProgmList.do?searchText=${kw2}" target="_blank" rel="noopener">
       🌱 꿈길 체험 더보기
