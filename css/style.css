@@ -592,3 +592,89 @@ h2 { font-size: 20px; font-weight: 600; color: var(--text-primary); margin-botto
   border-top: 0.5px solid var(--border-light);
   font-size: 11px; color: var(--text-hint);
 }
+
+/* ── 직업 상세 팝업 버튼 ───────────────────────────────── */
+.rh-btn-row {
+  display: flex; gap: 8px; justify-content: center;
+  flex-wrap: wrap; margin-top: 12px;
+}
+.rh-detail-btn {
+  padding: 8px 18px; border-radius: var(--radius-md);
+  border: 1.5px solid var(--teal-mid);
+  background: var(--bg-primary); color: var(--teal-dark);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all .15s;
+}
+.rh-detail-btn:hover { background: var(--teal); color: #fff; border-color: var(--teal); }
+.rh-detail-btn.secondary {
+  border-color: #85B7EB; color: var(--blue);
+}
+.rh-detail-btn.secondary:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* ── 직업 상세 모달 ───────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(2px);
+  z-index: 1000; display: flex;
+  align-items: center; justify-content: center; padding: 1rem;
+  animation: fadeIn .15s ease;
+}
+.modal-box {
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  width: 100%; max-width: 560px;
+  max-height: 85vh; overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--border-light);
+  flex-shrink: 0;
+}
+.modal-title {
+  font-size: 17px; font-weight: 700; color: var(--teal-dark);
+}
+.modal-close {
+  background: none; border: none; cursor: pointer;
+  font-size: 18px; color: var(--text-hint); padding: 4px;
+  border-radius: 6px; transition: all .15s;
+}
+.modal-close:hover { background: var(--bg-secondary); color: var(--text-primary); }
+.modal-body {
+  overflow-y: auto; padding: 1.25rem; flex: 1;
+}
+.modal-loading {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--text-secondary); font-size: 13px; padding: 1rem 0;
+}
+.modal-spinner {
+  width: 18px; height: 18px;
+  border: 2.5px solid var(--border-mid);
+  border-top-color: var(--teal);
+  border-radius: 50%; animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.modal-section { margin-bottom: 1rem; }
+.modal-tag {
+  font-size: 12px; font-weight: 700; color: var(--teal);
+  margin-bottom: 5px; text-transform: uppercase; letter-spacing: .3px;
+}
+.modal-text {
+  font-size: 13px; color: var(--text-primary);
+  line-height: 1.7; white-space: pre-line;
+}
+.modal-footer {
+  margin-top: 1.25rem; padding-top: 1rem;
+  border-top: 0.5px solid var(--border-light);
+  text-align: center;
+}
+.modal-link-btn {
+  display: inline-flex; align-items: center;
+  padding: 9px 20px; border-radius: var(--radius-md);
+  background: var(--teal); color: #fff;
+  font-size: 13px; font-weight: 600;
+  text-decoration: none; transition: all .15s;
+}
+.modal-link-btn:hover { background: var(--teal-deep); }
