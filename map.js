@@ -10,12 +10,12 @@ let activeFilters = { region: '전국', comps: [] };
 
 // 역량 ID → 표시명 / 색상
 const COMP_INFO = {
-  l:  { label:'리더십',      color:'#1D9E75', bg:'#E1F5EE' },
-  a:  { label:'분석적 사고', color:'#185FA5', bg:'#E6F1FB' },
-  ac: { label:'성취/노력',   color:'#BA7517', bg:'#FAEEDA' },
-  r:  { label:'책임성·진취성', color:'#D85A30', bg:'#FAECE7' },
-  i:  { label:'혁신',        color:'#534AB7', bg:'#EEEDFE' },
-  re: { label:'신뢰성',      color:'#888780', bg:'#F1EFE8' },
+  l:  { label:'협력적 소통 역량',   color:'#1D9E75', bg:'#E1F5EE' },
+  a:  { label:'지식정보처리 역량',  color:'#185FA5', bg:'#E6F1FB' },
+  ac: { label:'자기관리 역량',      color:'#BA7517', bg:'#FAEEDA' },
+  r:  { label:'공동체 역량',        color:'#D85A30', bg:'#FAECE7' },
+  i:  { label:'창의적 사고 역량',   color:'#534AB7', bg:'#EEEDFE' },
+  re: { label:'심미적 감성 역량',   color:'#888780', bg:'#F1EFE8' },
 };
 
 // 지도 초기화 (GAP 분석 후 약한 역량 자동 전달)
