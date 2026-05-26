@@ -107,9 +107,10 @@ let dropIdx = -1;
 
 // API 키 설정 (발급 후 여기에 입력)
 const API_CONFIG = {
-  ggoomgil: '',
-  careernet: '9a1be1e329e68eda99343906354a28e8',
+  ggoomgil: '',      // 꿈길 API 키 (data.go.kr 발급)
+  careernet: '',     // 커리어넷 API 키 (career.go.kr 발급)
 };
+
 // ── 유틸 함수 ────────────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 const calcComp = (id) => {
@@ -321,7 +322,17 @@ function renderResult() {
     ${selectedJob
       ? `<div class="rh-sub">희망 직업 <strong>${selectedJob.n}</strong>과(와) 함께 비교합니다</div>`
       : `<div class="rh-sub">역량 유사도 차이값 <strong>${recJob.diff}</strong></div>`
-    }`;
+    }
+    <div class="rh-btn-row">
+      <button class="rh-detail-btn" onclick="openJobModal('${recJob.n.replace(/'/g,"\\'")}')">
+        🔍 추천 직업 상세 정보
+      </button>
+      ${selectedJob
+        ? `<button class="rh-detail-btn secondary" onclick="openJobModal('${(selectedJob.n).replace(/'/g,"\\'")}')">
+            🔍 ${selectedJob.n} 상세 정보
+          </button>`
+        : ''}
+    </div>`;
 
   renderRadar(myArr, recJob, scores);
   renderGap(myArr, recJob);
@@ -609,3 +620,145 @@ document.addEventListener('DOMContentLoaded', () => {
   // 초기 문항 렌더링
   renderQuestions();
 });
+
+
+// ── CareerNet API 직업 상세 팝업 ─────────────────────────────────────
+const CAREERNET_KEY = API_CONFIG.careernet;
+
+async function openJobModal(jobName) {
+  // 모달 생성
+  const existing = document.getElementById('job-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'job-modal';
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">${jobName}</span>
+        <button class="modal-close" onclick="document.getElementById('job-modal').remove()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <div class="modal-loading">
+          <div class="modal-spinner"></div>
+          <span>커리어넷에서 직업 정보를 불러오는 중...</span>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+
+  if (!CAREERNET_KEY) {
+    renderModalFallback(jobName);
+    return;
+  }
+
+  try {
+    // 직업백과 + 직업정보 동시 호출
+    const [encycRes, infoRes] = await Promise.allSettled([
+      fetchCareernetEncy(jobName),
+      fetchCareernetInfo(jobName)
+    ]);
+
+    const encycData = encycRes.status === 'fulfilled' ? encycRes.value : null;
+    const infoData  = infoRes.status  === 'fulfilled' ? infoRes.value  : null;
+
+    if (!encycData && !infoData) {
+      renderModalFallback(jobName);
+      return;
+    }
+    renderModalContent(jobName, encycData, infoData);
+  } catch (e) {
+    console.warn('CareerNet API 오류:', e);
+    renderModalFallback(jobName);
+  }
+}
+
+// 직업백과 API
+async function fetchCareernetEncy(jobName) {
+  const url = `https://www.career.go.kr/cnet/front/openapi/jobs.json`
+    + `?apiKey=${CAREERNET_KEY}&searchJobNm=${encodeURIComponent(jobName)}&pageIndex=1`;
+  const res = await fetch(url);
+  const data = await res.json();
+  // 첫 번째 결과 반환
+  const list = data.jobs || data.dataSearch?.content || [];
+  return list.length > 0 ? list[0] : null;
+}
+
+// 직업정보 API
+async function fetchCareernetInfo(jobName) {
+  const url = `https://www.career.go.kr/cnet/front/openapi/job.json`
+    + `?apiKey=${CAREERNET_KEY}&searchJobNm=${encodeURIComponent(jobName)}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  const list = data.jobs || data.dataSearch?.content || [];
+  return list.length > 0 ? list[0] : null;
+}
+
+// 모달 내용 렌더링
+function renderModalContent(jobName, ency, info) {
+  const body = $('modal-body');
+  if (!body) return;
+
+  const job = ency || info || {};
+  const name    = job.job_nm  || job.jobNm  || jobName;
+  const desc    = job.job_dc  || job.jobDc  || job.summary || '';
+  const work    = job.work_dc || job.workDc || job.work    || '';
+  const edu     = job.edu_nm  || job.eduNm  || '';
+  const salary  = job.wage    || job.salaryInfo || '';
+  const outlook = job.employ_form || job.employForm || job.prospect || '';
+  const relate  = job.relate_job_nm || job.relateJobNm || '';
+
+  body.innerHTML = `
+    <div class="modal-section">
+      <div class="modal-tag">📋 직업 설명</div>
+      <p class="modal-text">${desc || '커리어넷에서 확인하세요.'}</p>
+    </div>
+    ${work ? `<div class="modal-section">
+      <div class="modal-tag">💼 하는 일</div>
+      <p class="modal-text">${work}</p>
+    </div>` : ''}
+    ${edu ? `<div class="modal-section">
+      <div class="modal-tag">🎓 필요 교육·자격</div>
+      <p class="modal-text">${edu}</p>
+    </div>` : ''}
+    ${salary ? `<div class="modal-section">
+      <div class="modal-tag">💰 임금 정보</div>
+      <p class="modal-text">${salary}</p>
+    </div>` : ''}
+    ${outlook ? `<div class="modal-section">
+      <div class="modal-tag">📈 고용 전망</div>
+      <p class="modal-text">${outlook}</p>
+    </div>` : ''}
+    ${relate ? `<div class="modal-section">
+      <div class="modal-tag">🔗 관련 직업</div>
+      <p class="modal-text">${relate}</p>
+    </div>` : ''}
+    <div class="modal-footer">
+      <a href="https://www.career.go.kr/cnet/front/web/job/catJobView.do?SEQ=0&jobGbn=job&keyword=${encodeURIComponent(jobName)}"
+         target="_blank" rel="noopener" class="modal-link-btn">
+        커리어넷에서 자세히 보기 →
+      </a>
+    </div>`;
+}
+
+// API 실패 시 폴백
+function renderModalFallback(jobName) {
+  const body = $('modal-body');
+  if (!body) return;
+  body.innerHTML = `
+    <div class="modal-section">
+      <p class="modal-text" style="color:var(--text-secondary)">
+        ${API_CONFIG.careernet
+          ? 'API 응답을 불러오지 못했습니다. 커리어넷에서 직접 확인해주세요.'
+          : 'API 키가 설정되지 않았습니다. app.js의 API_CONFIG에 키를 입력해주세요.'}
+      </p>
+    </div>
+    <div class="modal-footer">
+      <a href="https://www.career.go.kr/cnet/front/web/job/catJobView.do?SEQ=0&jobGbn=job&keyword=${encodeURIComponent(jobName)}"
+         target="_blank" rel="noopener" class="modal-link-btn">
+        커리어넷에서 직접 확인하기 →
+      </a>
+    </div>`;
+}
