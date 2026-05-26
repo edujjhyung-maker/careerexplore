@@ -107,10 +107,9 @@ let dropIdx = -1;
 
 // API 키 설정 (발급 후 여기에 입력)
 const API_CONFIG = {
-  ggoomgil: '',      // 꿈길 API 키 (data.go.kr 발급)
-  careernet: '',     // 커리어넷 API 키 (career.go.kr 발급)
+  ggoomgil: '',
+  careernet: '9a1be1e329e68eda99343906354a28e8',
 };
-
 // ── 유틸 함수 ────────────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 const calcComp = (id) => {
